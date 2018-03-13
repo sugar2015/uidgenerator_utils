@@ -1,0 +1,18 @@
+Metadata-Version: 1.1
+Name: uidgenerator-utils
+Version: 0.1
+Summary: A Django app to generate model id based on a snowflake of twitter.
+Home-page: UNKNOWN
+Author: wim
+Author-email: wim114@dingtalk.com
+License: UNKNOWN
+Description: 1. Add "uidgenerator" to your INSTALLED_APPS setting like this:
+            INSTALLED_APPS = (
+                ...
+                'uidgenerator',
+            )
+        
+Platform: UNKNOWN
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Django
+Classifier: Programming Language :: Python :: 3.6
