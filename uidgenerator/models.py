@@ -5,7 +5,7 @@ from django.core import exceptions
 from django.db import models
 from django.db.models import BigIntegerField
 
-from uidgenerator import settings
+from test_server.apps.uidgenerator import settings
 
 class UIDField(models.Field):
     empty_strings_allowed = False
@@ -58,22 +58,25 @@ class UIDField(models.Field):
         return 'BIGINT'
 
     def get_prep_value(self, value):
-        workerIdShift = self.sequenceBits
-        regionIdShift = self.workerIdBits + self.sequenceBits
-        timesStampShift = self.workerIdBits + self.sequenceBits + self.regionIdBits
+        if value is None:
+            workerIdShift = self.sequenceBits
+            regionIdShift = self.workerIdBits + self.sequenceBits
+            timesStampShift = self.workerIdBits + self.sequenceBits + self.regionIdBits
 
-        curTime = self.currentTime()
-        if (self.lastTimeStamp == curTime):
-            self.sequence = (self.sequence + 1) & self.maxSequenceId
-            if (self.sequence == 0):
-                curTime = self.tailNextMillis(self.lastTimeStamp)
+            curTime = self.currentTime()
+            if (self.lastTimeStamp == curTime):
+                self.sequence = (self.sequence + 1) & self.maxSequenceId
+                if (self.sequence == 0):
+                    curTime = self.tailNextMillis(self.lastTimeStamp)
+            else:
+                self.sequence = 0
+
+            self.lastTimeStamp = curTime
+            uid = int(((curTime - self.startTimeStamp) << timesStampShift) | (self.regionId << regionIdShift) | (self.workerId << workerIdShift) | self.sequence)
+            print('uid======%s'%uid)
+            return uid
         else:
-            self.sequence = 0
-
-        self.lastTimeStamp = curTime
-        uid = int(((curTime - self.startTimeStamp) << timesStampShift) | (self.regionId << regionIdShift) | (self.workerId << workerIdShift) | self.sequence)
-        return uid
-
+            return value
 
     def currentTime(self):
         return int(time.time()*1000)
