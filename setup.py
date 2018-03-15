@@ -8,7 +8,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='uidgenerator_utils',
-    version='0.1',
+    version='0.4',
     packages=['uidgenerator'],
     include_package_data=True,
     description='A Django app to generate model id based on a snowflake of twitter.',

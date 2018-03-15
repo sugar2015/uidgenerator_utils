@@ -33,6 +33,10 @@ class UIDField(models.Field):
         self.sequenceId = 0
         super().__init__(*args, **kwargs)
 
+    def get_pk_value_on_save(self, instance):
+        if instance.pk is None:
+            return self.generator()
+        return instance.pk
 
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
@@ -59,25 +63,27 @@ class UIDField(models.Field):
 
     def get_prep_value(self, value):
         if value is None:
-            workerIdShift = self.sequenceBits
-            regionIdShift = self.workerIdBits + self.sequenceBits
-            timesStampShift = self.workerIdBits + self.sequenceBits + self.regionIdBits
-
-            curTime = self.currentTime()
-            if (self.lastTimeStamp == curTime):
-                self.sequence = (self.sequence + 1) & self.maxSequenceId
-                if (self.sequence == 0):
-                    curTime = self.tailNextMillis(self.lastTimeStamp)
-            else:
-                self.sequence = 0
-
-            self.lastTimeStamp = curTime
-            uid = int(((curTime - self.startTimeStamp) << timesStampShift) | (self.regionId << regionIdShift) | (self.workerId << workerIdShift) | self.sequence)
-            print('uid======%s'%uid)
-            return uid
+            return self.generator()
         else:
             return value
 
+    def generator(self):
+        workerIdShift = self.sequenceBits
+        regionIdShift = self.workerIdBits + self.sequenceBits
+        timesStampShift = self.workerIdBits + self.sequenceBits + self.regionIdBits
+
+        curTime = self.currentTime()
+        if (self.lastTimeStamp == curTime):
+            self.sequence = (self.sequence + 1) & self.maxSequenceId
+            if (self.sequence == 0):
+                curTime = self.tailNextMillis(self.lastTimeStamp)
+        else:
+            self.sequence = 0
+
+        self.lastTimeStamp = curTime
+        uid = int(((curTime - self.startTimeStamp) << timesStampShift) | (self.regionId << regionIdShift) | (
+        self.workerId << workerIdShift) | self.sequence)
+        return uid
     def currentTime(self):
         return int(time.time()*1000)
 
